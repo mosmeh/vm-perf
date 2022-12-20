@@ -1,18 +1,10 @@
 #![feature(test)]
 
 extern crate test;
-use test::{Bencher, black_box};
+use test::{black_box, Bencher};
 use vm_perf::{
-    Expr,
-    Vm,
-    Walker,
-    Bytecode,
-    Closures,
-    StackClosures,
-    TapeClosures,
-    RegisterClosures,
-    BytecodeClosures,
-    TapeContinuations,
+    Bytecode, BytecodeClosures, Closures, DirectCall, Expr, RegisterClosures, StackClosures,
+    TapeClosures, TapeContinuations, Vm, Walker,
 };
 
 fn create_expr() -> Expr {
@@ -31,14 +23,14 @@ fn create_expr() -> Expr {
                 Box::new(Expr::While(
                     Box::new(Expr::Get(0)),
                     Box::new(Expr::Then(
-                        Box::new(Expr::Set(1, Box::new(Expr::Add(
-                            Box::new(Expr::Get(1)),
-                            Box::new(Expr::Arg(1)),
-                        )))),
-                        Box::new(Expr::Set(0, Box::new(Expr::Add(
-                            Box::new(Expr::Get(0)),
-                            Box::new(Expr::Litr(-1)),
-                        )))),
+                        Box::new(Expr::Set(
+                            1,
+                            Box::new(Expr::Add(Box::new(Expr::Get(1)), Box::new(Expr::Arg(1)))),
+                        )),
+                        Box::new(Expr::Set(
+                            0,
+                            Box::new(Expr::Add(Box::new(Expr::Get(0)), Box::new(Expr::Litr(-1)))),
+                        )),
                     )),
                 )),
             )),
@@ -64,8 +56,8 @@ unsafe fn rust_impl_opt(args: &[i64]) -> i64 {
     let mut total = 0;
     let mut count = *args.get_unchecked(0);
     while count > 0 {
-        total = total + *args.get_unchecked(1);
-        count = count + -1;
+        total += *args.get_unchecked(1);
+        count += -1;
     }
     total
 }
@@ -99,30 +91,87 @@ fn bench_execute<V: Vm>(b: &mut Bencher) {
     });
 }
 
+#[bench]
+fn direct_call_compile(b: &mut Bencher) {
+    bench_compile::<DirectCall>(b)
+}
+#[bench]
+fn direct_call_execute(b: &mut Bencher) {
+    bench_execute::<DirectCall>(b)
+}
+
 // AST walker
-#[bench] fn walker_compile(b: &mut Bencher) { bench_compile::<Walker>(b) }
-#[bench] fn walker_execute(b: &mut Bencher) { bench_execute::<Walker>(b) }
+#[bench]
+fn walker_compile(b: &mut Bencher) {
+    bench_compile::<Walker>(b)
+}
+#[bench]
+fn walker_execute(b: &mut Bencher) {
+    bench_execute::<Walker>(b)
+}
 // Bytecode
-#[bench] fn bytecode_compile(b: &mut Bencher) { bench_compile::<Bytecode>(b) }
-#[bench] fn bytecode_execute(b: &mut Bencher) { bench_execute::<Bytecode>(b) }
+#[bench]
+fn bytecode_compile(b: &mut Bencher) {
+    bench_compile::<Bytecode>(b)
+}
+#[bench]
+fn bytecode_execute(b: &mut Bencher) {
+    bench_execute::<Bytecode>(b)
+}
 // Closures
-#[bench] fn closures_compile(b: &mut Bencher) { bench_compile::<Closures>(b) }
-#[bench] fn closures_execute(b: &mut Bencher) { bench_execute::<Closures>(b) }
+#[bench]
+fn closures_compile(b: &mut Bencher) {
+    bench_compile::<Closures>(b)
+}
+#[bench]
+fn closures_execute(b: &mut Bencher) {
+    bench_execute::<Closures>(b)
+}
 // Stack closures
-#[bench] fn stack_closures_compile(b: &mut Bencher) { bench_compile::<StackClosures>(b) }
-#[bench] fn stack_closures_execute(b: &mut Bencher) { bench_execute::<StackClosures>(b) }
+#[bench]
+fn stack_closures_compile(b: &mut Bencher) {
+    bench_compile::<StackClosures>(b)
+}
+#[bench]
+fn stack_closures_execute(b: &mut Bencher) {
+    bench_execute::<StackClosures>(b)
+}
 // Tape closures
-#[bench] fn tape_closures_compile(b: &mut Bencher) { bench_compile::<TapeClosures>(b) }
-#[bench] fn tape_closures_execute(b: &mut Bencher) { bench_execute::<TapeClosures>(b) }
+#[bench]
+fn tape_closures_compile(b: &mut Bencher) {
+    bench_compile::<TapeClosures>(b)
+}
+#[bench]
+fn tape_closures_execute(b: &mut Bencher) {
+    bench_execute::<TapeClosures>(b)
+}
 // Register closures
-#[bench] fn register_closures_compile(b: &mut Bencher) { bench_compile::<RegisterClosures>(b) }
-#[bench] fn register_closures_execute(b: &mut Bencher) { bench_execute::<RegisterClosures>(b) }
+#[bench]
+fn register_closures_compile(b: &mut Bencher) {
+    bench_compile::<RegisterClosures>(b)
+}
+#[bench]
+fn register_closures_execute(b: &mut Bencher) {
+    bench_execute::<RegisterClosures>(b)
+}
 // Bytecode closures
-#[bench] fn bytecode_closures_compile(b: &mut Bencher) { bench_compile::<BytecodeClosures>(b) }
-#[bench] fn bytecode_closures_execute(b: &mut Bencher) { bench_execute::<BytecodeClosures>(b) }
+#[bench]
+fn bytecode_closures_compile(b: &mut Bencher) {
+    bench_compile::<BytecodeClosures>(b)
+}
+#[bench]
+fn bytecode_closures_execute(b: &mut Bencher) {
+    bench_execute::<BytecodeClosures>(b)
+}
 // Bytecode closures
-#[bench] fn tape_continuations_compile(b: &mut Bencher) { bench_compile::<TapeContinuations>(b) }
-#[bench] fn tape_continuations_execute(b: &mut Bencher) { bench_execute::<TapeContinuations>(b) }
+#[bench]
+fn tape_continuations_compile(b: &mut Bencher) {
+    bench_compile::<TapeContinuations>(b)
+}
+#[bench]
+fn tape_continuations_execute(b: &mut Bencher) {
+    bench_execute::<TapeContinuations>(b)
+}
 
 // Pure Rust controls
 #[bench]
